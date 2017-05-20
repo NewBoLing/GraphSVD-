@@ -97,7 +97,17 @@ object SVDPlusPlus {
       val updateY = q.clone()
       blas.dscal(rank, err * usr._4 * conf.gamma2, updateY, 1)
       blas.daxpy(rank, -conf.gamma7 * conf.gamma2, itm._2, 1, updateY, 1)
+     
+     
+     
+      /**I think updated information of updateY incorrectly send to source vertice. the original code like the below.
       ctx.sendToSrc((updateP, updateY, (err - conf.gamma6 * usr._3) * conf.gamma1))
+      In fact, usr._2 store pu + |N(u)|^(-0.5)*sum(y).  
+      we have already updated the part of y in usr._2 through sending the message to destination vertex, and this method will effect the part of y in usr._2,
+      but the part of pu is never updated. so we should send updateP to source vertex not updateY.
+      */
+            
+      ctx.sendToSrc((updateP, updateP, (err - conf.gamma6 * usr._3) * conf.gamma1))
       ctx.sendToDst((updateQ, updateY, (err - conf.gamma6 * itm._3) * conf.gamma1))
     }
 
